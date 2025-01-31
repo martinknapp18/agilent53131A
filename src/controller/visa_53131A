@@ -1,0 +1,121 @@
+# from asyncio import timeout
+from time import sleep
+import pyvisa
+
+
+class Visa53131A:
+    def __init__(self, port):
+        self.port = port
+        self.resource_manager = None
+        self.dev = None
+        self.serial_number = ''
+        self.channel = '1'
+
+
+    def initialize(self):
+        rm = pyvisa.ResourceManager()
+        self.dev = rm.open_resource(self.port, timeout=10000)
+        sleep(.5)
+
+
+    def finalize(self):
+        self.dev.close()
+
+
+    def query(self, message):
+        if self.dev is None:
+            raise Exception('You must first initialize the device with initialize()')
+
+        message = message + "\n"
+        message = message.encode()
+        self.dev.write(message)
+        # sleep(0.1) # be polite to all the data be sent back
+        return self.dev.read().decode('ascii').strip()
+
+
+    def idn(self):
+        self.serial_number = self.dev.query("*IDN?")
+
+    def rst(self):
+        message = f'*RST'
+        self.dev.write(message)
+
+
+    def MEASure_FREQuency(self):
+        message = f'MEAS:FREQ? (@{self.channel})'
+        print(message)
+        return self.dev.query(message)
+
+
+    def ACQuisition_APERture(self, time):
+        message = f'ACQ:APER {time}'
+        self.dev.write(message)
+
+    def ACQuisition_APERture_query(self):
+        message = f'ACQ:APER?'
+        return self.dev.query(message)
+
+
+    def CONFigure_FREQ(self):
+        message = f'CONFigure:FREQ (@{self.channel})'
+        self.dev.write(message)
+
+    def INITiate(self):
+        message = f'INITiate'
+        self.dev.write(message)
+
+    def READ(self):
+        message = f'READ?'
+        try:
+            response = self.dev.query(message)
+        except Exception:
+            print("Error: No valid frequency data. Is the input connected?")
+            response = 0
+
+        return response
+
+    def FORMat_TINFormation(self, state):
+        message =  f'FORM:TINF {state}'
+        self.dev.write(message)
+
+    def SYSTem_ERRor_query(self):
+        message =  f'SYSTem:ERRor?'
+        return self.dev.query(message)
+
+
+if __name__ == "__main__":
+    dev = Visa53131A('USB0::0x0699::0x3003::599442::INSTR') # need to change address here accordingly
+
+    dev.initialize()
+    dev.idn()
+    print(dev.serial_number)
+    dev.rst()
+
+
+    # print(dev.SYSTem_ERRor_query())
+    # print(dev.meas_time_query())
+    # dev.meas_time(1)
+    # print(dev.meas_time_query())
+    #
+    # print(dev.meas_freq())
+    # print(dev.SYSTem_ERRor_query())
+    # print(dev.meas_time_query())
+    # print(dev.SYSTem_ERRor_query())
+
+
+    # print(dev.SYSTem_ERRor_query())
+    dev.CONFigure_FREQ()
+    dev.ACQuisition_APERture(1)
+    # print(dev.ACQuisition_APERture_query())
+    # dev.INITiate()
+    freq = dev.READ()
+    print(freq)
+    print(f'{float(freq):.13}')
+    # print(dev.ACQuisition_APERture_query())
+    # print(dev.SYSTem_ERRor_query())
+    # print(dev.ACQuisition_APERture_query())
+    # dev.INITiate()
+    # print(dev.READ())
+
+
+    dev.finalize()
