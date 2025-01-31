@@ -1,0 +1,14 @@
+User:
+  name: "User"
+
+53131A:
+  port: "USB0::0x0699::0x3003::599442::INSTR"
+  model: "Dummy"  # Or Real
+  meas_time: 1
+  channel: 1
+
+Counter_Measurement:
+  meas_duration: 604800 # 60 s = 1 min, 3600 s = 1 hrs, 86400 = 24 hrs # 1000
+  folder: "C://Users//HCF1//Desktop//counter_oadev"
+  filename: "counter_oadev.csv"
+  metadata_filename: "counter_oadev_meta.yml"
