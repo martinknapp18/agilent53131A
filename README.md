@@ -1,6 +1,14 @@
 # agilent53131A
 
+## Using this code
 
+don't worry about it saying 53131A, it should work for visa_53132A becuase i'm assuming the SW commands are the same
+
+you'll need to change the usb address of the counter to match what's on your PC (line 87 in visa_53131A.py, line 35 in model_53131A.py)
+
+visa_53131A.py - hosts all the functions for interfacing with the counter. running this script will allow you to test out the raw functions.
+model_53131A.py - similar to visa_53131A.py but allows you to add more to the raw functions and strat manipulating the outputs of some functions
+oadev_53131A.py - a script that runs a function which continously logs the frequency from the counter ( _measurement_shot(self)_ ), you need to modify the config.yml file to choose the save data location, measurement time, counter channel, usb port of the counter
 
 ## Getting started
 
