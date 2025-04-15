@@ -14,7 +14,7 @@ class Visa53131A:
 
     def initialize(self):
         rm = pyvisa.ResourceManager()
-        self.dev = rm.open_resource(self.port, timeout=10000)
+        self.dev = rm.open_resource(self.port)
         sleep(.5)
 
 
@@ -47,25 +47,39 @@ class Visa53131A:
         return self.dev.query(message)
 
 
-    def ACQuisition_APERture(self, time):
-        message = f'ACQ:APER {time}'
+    def ARM_STAR_SOUR(self):
+        message = f'FREQ:ARM:STAR:SOUR IMM'
         self.dev.write(message)
 
-    def ACQuisition_APERture_query(self):
-        message = f'ACQ:APER?'
+
+    def ARM_STOP_SOUR(self):
+        message = f'FREQ:ARM:STOP:SOUR TIM'
+        self.dev.write(message)
+
+
+    def ARM_STOP_TIM(self, time):
+        message = f'FREQ:ARM:STOP:TIM {time}'
+        self.dev.write(message)
+
+    def ARM_STOP_TIM_query(self):
+        message = f'FREQ:ARM:STOP:TIM?'
         return self.dev.query(message)
 
 
     def CONFigure_FREQ(self):
-        message = f'CONFigure:FREQ (@{self.channel})'
+        message = f'CONF:FREQ (@{self.channel})'
         self.dev.write(message)
+
+    def CONFigure_FREQ_query(self):
+        message = f'CONF?'
+        return self.dev.query(message)
 
     def INITiate(self):
         message = f'INITiate'
         self.dev.write(message)
 
     def READ(self):
-        message = f'READ?'
+        message = f'READ:FREQ?'
         try:
             response = self.dev.query(message)
         except Exception:
@@ -82,40 +96,34 @@ class Visa53131A:
         message =  f'SYSTem:ERRor?'
         return self.dev.query(message)
 
+    def DISplay_ENABle(self, state):
+        message =  f'DIS:ENAB {state}'
+        self.dev.write(message)
+
+
+
+
 
 if __name__ == "__main__":
-    dev = Visa53131A('USB0::0x0699::0x3003::599442::INSTR') # need to change address here accordingly
+    dev = Visa53131A("GPIB0::2::INSTR") # need to change address here accordingly
 
     dev.initialize()
     dev.idn()
     print(dev.serial_number)
     dev.rst()
 
+    dev.DISplay_ENABle('OFF')
 
-    # print(dev.SYSTem_ERRor_query())
-    # print(dev.meas_time_query())
-    # dev.meas_time(1)
-    # print(dev.meas_time_query())
-    #
-    # print(dev.meas_freq())
-    # print(dev.SYSTem_ERRor_query())
-    # print(dev.meas_time_query())
-    # print(dev.SYSTem_ERRor_query())
-
-
-    # print(dev.SYSTem_ERRor_query())
     dev.CONFigure_FREQ()
-    dev.ACQuisition_APERture(1)
-    # print(dev.ACQuisition_APERture_query())
-    # dev.INITiate()
-    freq = dev.READ()
-    print(freq)
-    print(f'{float(freq):.13}')
-    # print(dev.ACQuisition_APERture_query())
-    # print(dev.SYSTem_ERRor_query())
-    # print(dev.ACQuisition_APERture_query())
-    # dev.INITiate()
-    # print(dev.READ())
+    dev.ARM_STAR_SOUR()
+    dev.ARM_STOP_SOUR()
+    dev.ARM_STOP_TIM(1)
+    dev.ARM_STOP_TIM_query()
 
+    for i in range(5):
+        freq = dev.READ()
+        print(freq)
+        print(dev.ARM_STOP_TIM_query())
+        # print(f'{float(freq):.13}')
 
     dev.finalize()
